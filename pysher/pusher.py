@@ -5,7 +5,7 @@ import hmac
 import logging
 import json
 
-VERSION = '0.6.0'
+VERSION = '0.6.1'
 
 
 class Pusher(object):
@@ -14,7 +14,7 @@ class Pusher(object):
     protocol = 6
 
     def __init__(self, key, cluster="", secure=True, secret="", user_data=None, log_level=logging.INFO,
-                 daemon=True, port=443, reconnect_interval=10, custom_host="", auto_sub=False,
+                 daemon=True, port=443, reconnect_interval=10, custom_host="", custom_url_path="", auto_sub=False,
                  http_proxy_host="", http_proxy_port=0, http_no_proxy=None, http_proxy_auth=None,
                  **thread_kwargs):
         """Initialize the Pusher instance.
@@ -48,7 +48,7 @@ class Pusher(object):
         self.user_data = user_data or {}
 
         self.channels = {}
-        self.url = self._build_url(secure, port, custom_host)
+        self.url = self._build_url(secure, port, custom_host, custom_url_path)
 
         if auto_sub:
             reconnect_handler = self._reconnect_handler
@@ -172,9 +172,10 @@ class Pusher(object):
 
         return auth_key
 
-    def _build_url(self, secure=True, port=None, custom_host=None):
-        path = "/ws/app/{}?client={}&version={}&protocol={}".format(
-            self.key, self.client_id, VERSION, self.protocol
+    def _build_url(self, secure=True, port=None, custom_host=None, custom_url_path=None):
+        app_path = custom_url_path or "ws/app"
+        path = "/{}/{}?client={}&version={}&protocol={}".format(
+            app_path, self.key, self.client_id, VERSION, self.protocol
         )
 
         proto = "wss" if secure else "ws"
